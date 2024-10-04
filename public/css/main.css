@@ -394,8 +394,8 @@ header {
 }
 
 .bub.a {
-  left: 5%;
-  top: 5%;
+  left: 0%;
+  top: -5%;
   animation:  fadeInTopLeft 2s ease ;
 
 }
