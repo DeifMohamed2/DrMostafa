@@ -134,7 +134,6 @@ const addVideo_post = async (req, res) => {
       videoPrice,
       imgURL,
       videoURL,
-      PDFURL
 
     } = req.body;
 
@@ -143,7 +142,7 @@ const addVideo_post = async (req, res) => {
       throw new Error('Missing required fields');
     }
 
-    if(imgURL=="" || videoURL=="" , PDFURL==""){
+    if(imgURL=="" || videoURL=="" ){
       throw new Error('Missing required fields');
     }
     // Generate unique ID for video object
@@ -162,7 +161,7 @@ const addVideo_post = async (req, res) => {
       videoPrice: videoPrice || 0,
       videoURL: videoURL || "",
       imgURL: imgURL || "",
-      PDFURL: PDFURL || "",
+ 
     };
 
     const videosInfo = {}
@@ -483,7 +482,7 @@ const updateVideoData = async (req, res) => {
     AccessibleAfterViewing,
     videoPrice,
     imgURL,
-    PDFURL,
+
     videoURL,
   } = req.body;
 
@@ -504,7 +503,7 @@ const updateVideoData = async (req, res) => {
           [`${videoType}.$.AccessibleAfterViewing`]: AccessibleAfterViewing || "",
           [`${videoType}.$.videoPrice`]: videoPrice || 0,
           [`${videoType}.$.imgURL`]: imgURL || "",
-          [`${videoType}.$.PDFURL`]: PDFURL || "",
+     
           [`${videoType}.$.videoURL`]: videoURL || "",
         }
       },

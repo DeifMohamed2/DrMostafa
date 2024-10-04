@@ -81,7 +81,6 @@ const public_Register_post = async (req, res) => {
     phone,
     parentPhone,
     place,
-    ARorEN,
   } = req.body;
 
   // Create an object to store validation errors
@@ -124,9 +123,7 @@ const public_Register_post = async (req, res) => {
   if (!Grade) {
     errors.Grade = '- يجب اختيار الصف الدراسي';
   }
-  if (!ARorEN) {
-    errors.Grade = '- يجب اختيار انت عربي ولا لغات';
-  }
+
   // If there are validation errors, render the registration form again with error messages
   if (Object.keys(errors).length > 0) {
     return res.render('Register', {
@@ -143,18 +140,18 @@ const public_Register_post = async (req, res) => {
   let videosInfo = [];
 
   if (Grade ==="Grade1") {
-    await User.findOne({Grade:Grade,Code:802258}).then((result)=>{
+    await User.findOne({Grade:Grade,Code:791613}).then((result)=>{
       quizesInfo = result.quizesInfo
       videosInfo = result.videosInfo
 
     })
   }else if(Grade ==="Grade2"){
-    await User.findOne({Grade:Grade,Code:867846}).then((result)=>{
+    await User.findOne({Grade:Grade,Code:669009}).then((result)=>{
       quizesInfo = result.quizesInfo
       videosInfo = result.videosInfo
     })
   }else if(Grade ==="Grade3"){
-    await User.findOne({Grade:Grade,Code:716576}).then((result)=>{
+    await User.findOne({Grade:Grade,Code:762056}).then((result)=>{
       quizesInfo = result.quizesInfo
       videosInfo = result.videosInfo
     })
@@ -184,7 +181,7 @@ const public_Register_post = async (req, res) => {
       totalQuestions: 0,
       totalSubscribed: 0,
       isTeacher: false,
-      ARorEN: ARorEN,
+      ARorEN: 'AR',
       chaptersPaid: [],
       videosPaid: [],
       examsPaid: [],

@@ -136,7 +136,8 @@
                         </div>
 
                         <div class="row addToChapterStructure">
-                            <h1>Add To Chapter</h1>
+                          <h1>Add To Chapter - > عدد الفيديوهات : <span id="mediaCount"></span></h1>
+
 
                             <h2 id="waiting" style="display: none;">wait please ...</h2>
 
@@ -212,10 +213,9 @@
                                                     </div>
                                                     <div class="selction">
 
-                                                       
-                                                        <input type="text" name="imgURL" class="d-none" id="imgURL"
+                                                        <input type="text" name="videoURL" style="width: 1px !important; background: transparent;" id="videoURL"
                                                             value="">
-                                                        <input type="text" name="PDFURL" class="d-none" id="PDFURL"
+                                                        <input type="text" name="imgURL" class="d-none" id="imgURL"
                                                             value="">
                                                         <select name="paymentStatus" id="paymentStatus" class="Grade"
                                                             required>
@@ -283,7 +283,6 @@
 
                                     </div>
 
-                                    <input type="text" name="videoURL" style="background-color: transparent; border: 1px solid #fff; color: #fff; border-radius: 10px; width: 272px !important; text-align: center;height: 30px;" id="videoURL" value="" placeholder="اضف لينك الفيديو هنا" required>
 
                                     <div class="col-md-3 mt-2 mx-auto">
                                         <button class="generate_Video_Boxs_Btn" id="generate_Video_Box_Btn"> Add Video
@@ -309,17 +308,19 @@
                                 </div>
 
                             </div>
-                      
-                            <div class="video-uploder">
-                                 <div class="upload">
-                                     <button class="warning BTN_Upload" type="button" id="BtnPDFUpload"
-                                         onclick=" module.uploadPDF()">رفع PDF <i
-                                             class="fa-solid fa-upload me-2"></i></button>
-                                     <input type="file" id="selbtnPDF"><br>
+                            <div class="col-6">
+                                <div class="video-uploder">
+                                    <div class="upload">
+                                        <button class="warning BTN_Upload" type="button" id="BtnVideoUpload"
+                                            onclick="uploadVideo()">رفع فيديو <i
+                                                class="fa-solid fa-upload me-2"></i></button>
+                                        <input type="file" id="selbtnVideo"><br>
 
 
-                                 </div>
-                             </div>
+                                    </div>
+                                </div>
+
+                            </div>
 
 
                             <!-- <div class="col-6">
@@ -473,12 +474,12 @@ const getQueryStringParameter = (name) => {
    
         </script>
 
-<!-- 
-<script >
-    const BTNvideoUpload = document.getElementById("BtnVideoUpload");
 
-const apiKey = 'edab5dacea1e89d793efff1b19643141eeacf72a74c91da00e79b2efe475f0ec';
-const projectId = 'wldrk8rgro'; 
+<script >
+const BTNvideoUpload = document.getElementById("BtnVideoUpload");
+
+const apiKey = '4f536be020d78d14e362f29480a8407e5b040b486796c2b37cb5ecc86ca962db';
+const projectId = 'mbi72gufkd'; 
 let embded 
 
 const options = {
@@ -550,7 +551,7 @@ function uploadVideo() {
 }
 
 
-</script> -->
+</script>
 
  <!-- Include Dropzone JS
  <script>
@@ -675,12 +676,9 @@ Dropzone.options.myDropzone = {
             let files = [];
             let reader = new FileReader();
             let imgUrl;
-            let input = document.getElementById("selbtnPhoto");
-            let UpBtn = document.getElementById("BtnPhotoUpload");
-
-            let PDFUrl;
-            let inputPDF = document.getElementById("selbtnPDF");
-            let UpBtnPDF = document.getElementById("BtnPDFUpload");
+            var input = document.getElementById("selbtnPhoto");
+            let selVideo = document.getElementById('selbtnVideo')
+            var UpBtn = document.getElementById("BtnPhotoUpload");
 
 
             input.onchange = (e) => {
@@ -732,68 +730,17 @@ Dropzone.options.myDropzone = {
                             document.getElementById('imgURL').setAttribute('value', imgUrl)
                             document.getElementById('BtnPhotoUpload').innerHTML = "تم الرفع"
 
+                            document.getElementById('BtnVideoUpload').removeAttribute('disabled')
                         });
                     }
                 );
             }
+
+            document.getElementById('BtnVideoUpload').addEventListener('click',()=>{
+                document.getElementById('BtnVideoUpload').innerHTML = "يتم التجهيز للرفع برجاء عدم اغلاق الصفحه نهائيا"
+            })
 
    
-            let filesPDF = [];
-            let readerPDF = new FileReader();
-
-            inputPDF.onchange = (e) => {
-                filesPDF = e.target.files;
-                readerPDF.readAsDataURL(filesPDF[0]);
-            };
-
-            readerPDF.onload = function () {
-                // SelBtn.remove();
-                // editPhotoBtn.style.display = "inline";
-                // document.getElementById("imgUploaded").classList.remove("d-none");
-                // document.getElementById("imgUploaded").src = reader.result;
-
-            };
-
-
-            UpBtnPDF.onclick = () => {
-                uploadPDF();
-            }
-
-
-            async function uploadPDF() {
-                var PDFToUpload = filesPDF[0];
-
-                const metaData = {
-                    contentType: PDFToUpload.type,
-                };
-
-                const storage = getStorage(storageApp);
-                console.log(PDFToUpload);
-                const stroageRef = sRef(
-                    storage,
-                    "BioDiva/" + "PDFs/" + filesPDF[0].name
-                );
-                const UploadTask = uploadBytesResumable(stroageRef, PDFToUpload, metaData);
-                UploadTask.on(
-                    "state-changed",
-                    (snapshot) => {
-                        var progess = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                        UpBtnPDF.innerHTML = progess.toFixed(2) + "%";
-                    },
-                    (error) => {
-                        console.log(error)
-
-                    },
-                    () => {
-                        getDownloadURL(UploadTask.snapshot.ref).then((downloadURL) => {
-                            PDFUrl = downloadURL;
-                            document.getElementById('PDFURL').setAttribute('value', PDFUrl)
-                            document.getElementById('BtnPDFUpload').innerHTML = "تم الرفع"
-
-                        });
-                    }
-                );
-            }
 
         
 </script>
