@@ -1212,41 +1212,38 @@ const updateQuiz = (req, res) => {
 
 const quizSubmit = (req, res) => {
   const errors = {};
-  const {
-    videoWillbeOpen,
-    Grade,
-    timeOfQuiz,
-    quizName,
-    prepaidStatus,
-
-  } = req.body;
+  const { videoWillbeOpen, Grade, timeOfQuiz, quizName, prepaidStatus } =
+    req.body;
 
   if (!Grade) {
-    errors.gradeError = "- يرجي اختيار الصف الدراسي"
+    errors.gradeError = '- يرجي اختيار الصف الدراسي';
   }
   if (!quizName) {
-    errors.nameError = "- يرجي إدخال عنوان الامتحان";
+    errors.nameError = '- يرجي إدخال عنوان الامتحان';
   }
   // if (!questionsCount) {
   //   errors.countError = "- يرجي تعبئة حقل عدد الأسئلة ";
   // }
   if (quizQuestions.length == 0) {
-    errors.timeError = "يجب اضافه سؤال واحد علي الاقل"
-
+    errors.timeError = 'يجب اضافه سؤال واحد علي الاقل';
   }
-  if (!(timeOfQuiz)) {
-    errors.timeError = "- يرجي تعبئه حقل وقت الامتحان"
+  if (!timeOfQuiz) {
+    errors.timeError = '- يرجي تعبئه حقل وقت الامتحان';
   }
 
   if (Object.keys(errors).length > 0) {
-    return res.render("teacher/addQuiz", { title: "AddQuiz", path: req.path, questions: quizQuestions, errors: errors, videsPrerequested: null, quizData: null, Grade: null,getQuizAllData:getQuizAllData,videoData:null });
-
+    return res.render('teacher/addQuiz', {
+      title: 'AddQuiz',
+      path: req.path,
+      questions: quizQuestions,
+      errors: errors,
+      videsPrerequested: null,
+      quizData: null,
+      Grade: null,
+      getQuizAllData: getQuizAllData,
+      videoData: null,
+    });
   }
-
-
- 
-
-
 
   const quiz = new Quiz({
     quizName: quizName,
@@ -1257,13 +1254,14 @@ const quizSubmit = (req, res) => {
     isQuizActive: true,
     permissionToShow: true,
     Questions: quizQuestions,
-    prepaidStatus: prepaidStatus == "Pay" ? true : false
+    prepaidStatus: prepaidStatus == 'Pay' ? true : false,
   });
 
   quiz
     .save()
     .then((result) => {
-      User.updateMany({ Grade: Grade },
+      User.updateMany(
+        { Grade: Grade },
         {
           $push: {
             quizesInfo: {
@@ -1273,64 +1271,59 @@ const quizSubmit = (req, res) => {
               inProgress: false,
               solvedAt: null,
               solveTime: null,
-              isQuizPrepaid: prepaidStatus == "Pay" ? true : false,
-              quizPurchaseStatus: prepaidStatus == "Pay" ? false : true,
+              endTime: null,
+              isQuizPrepaid: prepaidStatus == 'Pay' ? true : false,
+              quizPurchaseStatus: prepaidStatus == 'Pay' ? false : true,
               answers: [],
               questionsCount: +quizQuestions.length,
               Score: 0,
-            }
-          }
+            },
+          },
         },
         {
-          upsert: true
+          upsert: true,
         }
       ).then((result) => {
-        console.log(result)
-      try {
-
-
-        const message = `
+        console.log(result);
+        try {
+          const message = `
         تم اضافة امتحان جديد علي المنصه 
 اسم الامتحان : ${quizName}
 مده الامتحان : ${timeOfQuiz}
 عدد الاسئله : ${+quizQuestions.length} 
         `;
 
+          const twilio = require('twilio');
+          const client = new twilio(
+            'AC9dc144cf25dc8648bd045f464adf6a7a',
+            'da561a4e33fdb8806cf71e1d6474a83e'
+          );
 
+          // Define the WhatsApp group ID and message
+          const groupID = 'YOUR_WHATSAPP_GROUP_ID';
 
-const twilio = require('twilio');
-const client = new twilio('AC9dc144cf25dc8648bd045f464adf6a7a', 'da561a4e33fdb8806cf71e1d6474a83e');
+          // Send the message to the WhatsApp group
+          client.messages
+            .create({
+              from: 'whatsapp:+14155238886', // Twilio WhatsApp number
+              body: message,
+              to: `120363224062729273`, // WhatsApp group ID
+            })
+            .then((message) => console.log(`Message sent: ${message.sid}`))
+            .catch((error) => console.error(error));
+        } catch (error) {
+          console.log(error);
+        }
 
-// Define the WhatsApp group ID and message
-const groupID = 'YOUR_WHATSAPP_GROUP_ID';
-
-// Send the message to the WhatsApp group
-client.messages.create({
-    from: 'whatsapp:+14155238886', // Twilio WhatsApp number
-    body: message,
-    to: `120363224062729273` // WhatsApp group ID
-})
-.then(message => console.log(`Message sent: ${message.sid}`))
-.catch(error => console.error(error));
-
-      } catch (error) {
-        console.log(error)
-      }
-
-      quizQuestions = []
-        res.redirect("/teacher/addQuiz")
-      })
-
-
-
+        quizQuestions = [];
+        res.redirect('/teacher/addQuiz');
+      });
     })
     .catch((err) => {
       console.error(err);
-      res.status(500).send("An error occurred while saving the quiz.");
+      res.status(500).send('An error occurred while saving the quiz.');
     });
-
-
-}
+};
 
 // =========================================== END Add Quiz =================================================== //
 

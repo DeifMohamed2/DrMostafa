@@ -749,16 +749,20 @@ const quiz_get = async (req, res) => {
   try {
     const quizId = req.params.quizId;
     const quiz = await Quiz.findById(quizId);
-    const quizUser = req.userData.quizesInfo.find(q => q._id.toString() === quiz._id.toString());
+    const quizUser = req.userData.quizesInfo.find(
+      (q) => q._id.toString() === quiz._id.toString()
+    );
 
+    console.log(quiz, quizUser);
+    if (!quiz) {
+      return res.redirect('/student/exams');
+    }
 
-    console.log(quiz, quizUser); 
-      if (!quiz) {
-        return res.redirect('/student/exams');
-
-      }
-    
-    if (!quizUser || !quiz.permissionToShow || !quiz.isQuizActive || (quizUser.isEnterd && !quizUser.inProgress)) {
+    if (
+      !quizUser ||
+      !quiz.permissionToShow ||
+      (quizUser.isEnterd && !quizUser.inProgress)
+    ) {
       return res.redirect('/student/exams');
     }
 
@@ -767,46 +771,51 @@ const quiz_get = async (req, res) => {
       return res.redirect('/student/exams');
     }
 
-      res.render("student/quiz", { title: "Quiz", path: req.path, quiz: quiz, userData: req.userData, question: null });
-
-
-
+    res.render('student/quiz', {
+      title: 'Quiz',
+      path: req.path,
+      quiz: quiz,
+      userData: req.userData,
+      question: null,
+    });
   } catch (error) {
     res.send(error.message);
   }
-}
-
+};
 
 const quizWillStart = async (req, res) => {
   try {
-    
-
     const quizId = req.params.quizId;
     const quiz = await Quiz.findById(quizId);
-    const quizUser = req.userData.quizesInfo.find(q => q._id.toString() === quiz._id.toString());
+    const quizUser = req.userData.quizesInfo.find(
+      (q) => q._id.toString() === quiz._id.toString()
+    );
 
-    const durationInMinutes = quiz.timeOfQuiz; 
-   
+    const durationInMinutes = quiz.timeOfQuiz;
+
     const endTime = new Date(Date.now() + durationInMinutes * 60000);
     console.log(endTime, durationInMinutes);
     if (!quizUser.endTime) {
-      console.log(endTime, durationInMinutes);
-      await User.findOneAndUpdate({_id: req.userData._id ,  'quizesInfo._id': quiz._id  }, { $set: { 'quizesInfo.$.endTime': endTime ,'quizesInfo.$.inProgress': true } } ).then((result)=>{ 
-
+      console.log(quizUser.endTime);
+      await User.findOneAndUpdate(
+        { _id: req.userData._id, 'quizesInfo._id': quiz._id },
+        {
+          $set: {
+            'quizesInfo.$.endTime': endTime,
+            'quizesInfo.$.inProgress': true,
+          },
+        }
+      ).then((result) => {
+        console.log(result);
         res.redirect(`/student/quizStart/${quizId}?qNumber=1`);
-
-      })
-    }else{
+      });
+    } else {
       res.redirect(`/student/quizStart/${quizId}?qNumber=1`);
     }
-
   } catch (error) {
-      res.send(error.message);
+    res.send(error.message);
   }
-}
-
-  
-
+};
 
 const escapeSpecialCharacters = (text) => {
   try {
@@ -830,10 +839,17 @@ const quiz_start = async (req, res) => {
   try {
     const quizId = req.params.quizId;
     const quiz = await Quiz.findById(quizId);
-    const userQuizInfo = req.userData.quizesInfo.find(q => q._id.toString() === quiz._id.toString());
-    
+    const userQuizInfo = req.userData.quizesInfo.find(
+      (q) => q._id.toString() === quiz._id.toString()
+    );
+
     // Redirect if quiz or user info not found
-    if (!quiz || !userQuizInfo || !quiz.permissionToShow || !quiz.isQuizActive || (userQuizInfo.isEnterd && !userQuizInfo.inProgress)) {
+    if (
+      !quiz ||
+      !userQuizInfo ||
+      !quiz.permissionToShow ||
+      (userQuizInfo.isEnterd && !userQuizInfo.inProgress)
+    ) {
       return res.redirect('/student/exams');
     }
 
@@ -855,9 +871,10 @@ const quiz_start = async (req, res) => {
       console.log(questionNumber);
     }
 
-
     // Find the current question and escape special characters
-    const question = quiz.Questions.find(q => q.qNumber.toString() === questionNumber.toString());
+    const question = quiz.Questions.find(
+      (q) => q.qNumber.toString() === questionNumber.toString()
+    );
 
     question.title = escapeSpecialCharacters(question.title);
     question.answer1 = escapeSpecialCharacters(question.answer1);
@@ -865,84 +882,92 @@ const quiz_start = async (req, res) => {
     question.answer3 = escapeSpecialCharacters(question.answer3);
     question.answer4 = escapeSpecialCharacters(question.answer4);
 
-    res.render("student/quizStart", { title: "Quiz", path: req.path, quiz, userData: req.userData, question, userQuizInfo });
+    res.render('student/quizStart', {
+      title: 'Quiz',
+      path: req.path,
+      quiz,
+      userData: req.userData,
+      question,
+      userQuizInfo,
+    });
   } catch (error) {
     res.send(error.message);
   }
-}
+};
 
-
-
-
-const quizFinish = async(req,res)=>{
+const quizFinish = async (req, res) => {
   try {
     const quizId = req.params.quizId;
     const quizObjId = new mongoose.Types.ObjectId(quizId);
 
     const quiz = await Quiz.findById(quizId);
-    const userQuizInfo = req.userData.quizesInfo.find(q => q._id.toString() === quiz._id.toString());
+    const userQuizInfo = req.userData.quizesInfo.find(
+      (q) => q._id.toString() === quiz._id.toString()
+    );
     const quizData = req.body;
     let answers = quizData.answers;
     const score = quizData.score;
 
+    // Calculate the percentage score
+    const scorePercentage = (score / quiz.questionsCount) * 100;
+
+    // If user has already entered and quiz is not in progress, redirect
     if (userQuizInfo.isEnterd && !userQuizInfo.inProgress) {
       return res.redirect('/student/exams');
     }
 
-    // Update user's quiz info
+  
+
+    // Update user's quiz info if score is 60% or above
     User.findOneAndUpdate(
-      {_id: req.userData._id, 'quizesInfo._id': quizObjId},
-      { 
+      { _id: req.userData._id, 'quizesInfo._id': quizObjId },
+      {
         $set: {
           'quizesInfo.$.answers': answers,
           'quizesInfo.$.Score': +score,
           'quizesInfo.$.inProgress': false,
           'quizesInfo.$.isEnterd': true,
-          'quizesInfo.$.solvedAt':  Date.now(),
-          'quizesInfo.$.endTime': 0
+          'quizesInfo.$.solvedAt': Date.now(),
+          'quizesInfo.$.endTime': null,
         },
-        $inc: {"totalScore": +score , "totalQuestions": +quiz.questionsCount} 
+        $inc: { totalScore: +score, totalQuestions: +quiz.questionsCount },
       }
     ).then(async (result) => {
-    
-
       // Check if there's a corresponding video for the quiz in user's videosInfo
-      const videoInfo = req.userData.videosInfo.find(video => video._id === quiz.videoWillbeOpen);
+      const videoInfo = req.userData.videosInfo.find(
+        (video) => video._id === quiz.videoWillbeOpen
+      );
       if (videoInfo && !videoInfo.isUserEnterQuiz) {
         // Update the video's entry to mark it as entered by the user
         await User.findOneAndUpdate(
-          {_id: req.userData._id, 'videosInfo._id': videoInfo._id},
-          {$set: {'videosInfo.$.isUserEnterQuiz': true}}
+          { _id: req.userData._id, 'videosInfo._id': videoInfo._id },
+          { $set: { 'videosInfo.$.isUserEnterQuiz': true } }
         ).then((result) => {
           res.redirect('/student/exams');
-        })
-      }else{
+        });
+      } else {
         res.redirect('/student/exams');
       }
     });
   } catch (error) {
     res.send(error.message);
   }
-}
+};
 
-
-
-const review_Answers = async (req,res)=>{
+const review_Answers = async (req, res) => {
   try {
-
     const quizId = req.params.quizId;
     const quizObjId = new mongoose.Types.ObjectId(quizId);
     const quiz = await Quiz.findById(quizId);
-    const userQuizInfo = req.userData.quizesInfo.find(q => q._id.toString() === quiz._id.toString());
+    const userQuizInfo = req.userData.quizesInfo.find(
+      (q) => q._id.toString() === quiz._id.toString()
+    );
     const quizData = req.body;
 
-
-
     // Redirect if quiz or user info not found
-    if ( quiz.isQuizActive || !quiz.permissionToShow ) {
+    if (!quiz.permissionToShow) {
       return res.redirect('/student/exams');
     }
-
 
     // Parse query parameter for question number
     let questionNumber = parseInt(req.query.qNumber) || 1;
@@ -951,9 +976,10 @@ const review_Answers = async (req,res)=>{
       console.log(questionNumber);
     }
 
-
     // Find the current question and escape special characters
-    const question = quiz.Questions.find(q => q.qNumber.toString() === questionNumber.toString());
+    const question = quiz.Questions.find(
+      (q) => q.qNumber.toString() === questionNumber.toString()
+    );
 
     question.title = escapeSpecialCharacters(question.title);
     question.answer1 = escapeSpecialCharacters(question.answer1);
@@ -961,15 +987,18 @@ const review_Answers = async (req,res)=>{
     question.answer3 = escapeSpecialCharacters(question.answer3);
     question.answer4 = escapeSpecialCharacters(question.answer4);
 
-
-
-    res.render("student/reviewAnswers",{ title: "Quiz", path: req.path, quiz, userData: req.userData, question, userQuizInfo });
-
-    
+    res.render('student/reviewAnswers', {
+      title: 'Quiz',
+      path: req.path,
+      quiz,
+      userData: req.userData,
+      question,
+      userQuizInfo,
+    });
   } catch (error) {
     res.send(error.message);
   }
-}
+};
 
 
 
