@@ -556,11 +556,17 @@ const uploadHW = async (req, res) => {
   try {
     const VideoId = req.params.VideoId;
     const userId = req.userData._id;
+    const HomeWorkPhotos = req.body.HomeWorkPhotos;
 
     // Update the specific video's isHWIsUploaded field
     await User.findOneAndUpdate(
       { _id: userId, 'videosInfo._id': VideoId },
-      { $set: { 'videosInfo.$.isHWIsUploaded': true } }
+      {
+        $set: {
+          'videosInfo.$.isHWIsUploaded': true,
+          'videosInfo.$.HomeWorkPhotos': HomeWorkPhotos,
+        },
+      }
     );
 
     // Optionally, you can call getVideoWatch after updating the field

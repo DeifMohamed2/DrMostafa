@@ -18,23 +18,27 @@ const { wallet_get } = require("./studentController");
 
 
 const dash_get = async (req, res) => {
-//   const idsToKeep = [
-//     "65e4cfe6022bba8f9ed4a80f",
-//     "65e4d024022bba8f9ed4a811",
-//     "65e4d045022bba8f9ed4a813",
-//     "65eb2856a76c472e4fa64fd3",
-//     "65e8fd8449a3eecaa4593bd3"
-// ];
-//   User.deleteMany({ _id: { $nin: idsToKeep } })
-//   .then(result => {
-//       console.log(`${result.deletedCount} users deleted.`);
-//   })
-//   .catch(error => {
-//       console.error("Error deleting users:", error);
-//   });
-  res.render("teacher/dash", { title: "DashBoard", path: req.path });
-};
+  try {
+    // await User.updateMany(
+    //   { 'quizesInfo._id': new mongoose.Types.ObjectId('67152441d295136eab0f8b04') }, // condition to target all users with this quiz
+    //   {
+    //     $set: {
+    //       'quizesInfo.$.isEnterd': false, // Set isEnterd to false
+    //       'quizesInfo.$.inProgress': false, // Mark quiz as not in progress
+    //       'quizesInfo.$.solvedAt': null, // Reset solvedAt date
+    //       'quizesInfo.$.score': 0, // Reset score to 0
+    //       'quizesInfo.$.answers': [], // Reset answers to an empty array
+    //       'quizesInfo.$.endTime': null, // Reset endTime to null
+    //     },
+    //   }
+    // );
 
+    res.render('teacher/dash', { title: 'DashBoard', path: req.path });
+  } catch (error) {
+    console.error('Error updating quiz information:', error);
+    res.status(500).send('Error updating quiz information.');
+  }
+};
 
 
 const myStudent_get = (req, res) => {
@@ -2174,6 +2178,131 @@ const admin_wallet_post = async (req, res) => {
 };
 
 // ================================================== END Wallet ================================================ // 
+// =================================================== Home Work =================================================== //
+
+const getVideosToHW = async (req, res) => {
+  const Grade = req.params.Grade;
+
+  try {
+    const videos = await Chapter.find(
+      { chapterGrade: Grade },
+      { chapterName: 1, chapterLectures: 1 }
+    );
+
+    if (videos.length === 0) {
+      return res
+        .status(404)
+        .json({ message: 'No chapters found for this grade.' });
+    }
+
+    res.status(200).json({ videos: videos[0].chapterLectures });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+const getAllStudentsHW = async (req, res) => {
+  const { videoID } = req.params;
+  console.log(videoID);
+  try {
+    const students = await User.aggregate([
+      {
+        $match: {
+          videosInfo: {
+            $elemMatch: {
+              _id: videoID,
+              isHWIsUploaded: true,
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          Username: 1,
+          Code: 1,
+          videosInfo: {
+            $filter: {
+              input: '$videosInfo',
+              as: 'video',
+              cond: {
+                $and: [
+                  { $eq: ['$$video._id', videoID] },
+                  { $eq: ['$$video.isHWIsUploaded', true] },
+                ],
+              },
+            },
+          },
+        },
+      },
+      {
+        $sort: {
+          createdAt: 1,
+        },
+      },
+    ]);
+
+    console.log(students);
+    if (students.length === 0) {
+      return res.status(404).json({
+        message: 'No students found who uploaded homework for this video.',
+      });
+    }
+
+    res.status(200).json({ students });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+const showHW = async (req, res) => {
+  const { videoID, studentCode } = req.params;
+  try {
+    // Find the user with the specific studentCode and retrieve the specific video data
+    const user = await User.findOne(
+      { Code: studentCode },
+      { videosInfo: { $elemMatch: { _id: videoID } } } // Only retrieve the matching video
+    );
+
+    // Check if the user and video were found
+    if (!user || user.videosInfo.length === 0) {
+      return res.status(404).json({ message: 'Video not found' });
+    }
+
+    // Return the video data
+    res.status(200).json(user.videosInfo[0]); // Return the video data
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+const acceptHW = async (req, res) => {
+  const { videoID, studentCode } = req.params;
+
+  try {
+    // Find the user with the specific studentCode and update the specific video data
+    const user = await User.findOneAndUpdate(
+      { Code: studentCode, 'videosInfo._id': videoID },
+      {
+        $set: {
+          'videosInfo.$.isUploadedHWApproved': true,
+        },
+      }
+    );
+
+    // Check if the user and video were found
+    if (!user) {
+      return res.status(404).json({ message: 'Video not found' });
+    }
+
+    // Return the video data
+
+    res.status(200).json({ message: 'Homework accepted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// =================================================== Log Out =================================================== //
 
 
 
@@ -2245,6 +2374,14 @@ module.exports = {
   createGeneralCodes,
 
   searchToGetCode,
+
+
+  // HomeWork Page
+
+  getVideosToHW,
+  getAllStudentsHW,
+  showHW,
+  acceptHW,
 
   // Wallet
 

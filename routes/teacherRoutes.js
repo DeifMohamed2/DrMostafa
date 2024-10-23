@@ -201,7 +201,15 @@ router.get("/searchToGetCode",authMiddleware, teacherController.searchToGetCode)
 // ================ END Handel Codes  ===================//
 
 
+//  ================== Home Work  ==================  //
 
+router.get('/homeWork/:Grade', authMiddleware, teacherController.getVideosToHW);
+
+router.get('/homeWork/:Grade/:videoID', authMiddleware, teacherController.getAllStudentsHW);
+
+router.get('/homeWork/show/:videoID/:studentCode', authMiddleware, teacherController.showHW);
+
+router.get('/homeWork/accept/:videoID/:studentCode', authMiddleware, teacherController.acceptHW);
 
 
 // ================== Handle Videos ====================== //
