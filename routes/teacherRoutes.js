@@ -146,6 +146,12 @@ router.post("/QuizSubmit",authMiddleware, teacherController.quizSubmit);
 
 router.post("/addQuestion", authMiddleware,teacherController.addQuestion);
 
+router.post(
+  '/addQuiz/getVideosWillOpen',
+  authMiddleware,
+  teacherController.getVideosWillOpen
+);
+
 router.get("/deleteQuiz/:quizID", authMiddleware,teacherController.deleteQuiz);
 
 router.post("/updateQuiz/:quizID", authMiddleware,teacherController.updateQuiz);

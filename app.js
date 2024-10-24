@@ -23,6 +23,7 @@ const teacherRoutes = require('./routes/teacherRoutes')
 const studentRoutes = require('./routes/studentRoutes');
 // express app
 const app = express();
+app.use(express.json());
 const socketio = require('socket.io');
 const path = require('path');
 

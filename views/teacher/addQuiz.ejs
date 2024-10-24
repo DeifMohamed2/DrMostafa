@@ -79,7 +79,7 @@
                     <div class="row mt-1">
                         <div class="col-md-6">
                         <form  action="/teacher/addQuiz" method="get" id="getVideosToQuiz" >
-                            <select name="Grade" id="Grade" class="slections" required>
+                            <select name="Grade"  class="slections" required>
                                 <option value="">اختر الصف الدراسي</option>
                         <% if (Grade) { %>
                                 <option value="Grade1" <%= Grade === 'Grade1' ? 'selected' : '' %>>الصف الاول الثانوي</option>
@@ -290,6 +290,40 @@
     <script src="../assest/bootstrap.min.js"></script>
 
 
+
+<script>
+    const Grade = document.getElementById('Grade')  
+
+    Grade.addEventListener('change',()=>{
+        
+        const selectedGrade = Grade.value;
+        console.log(selectedGrade)
+        fetch('/teacher/addQuiz/getVideosWillOpen', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ Grade: selectedGrade})
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            const videosNameSelect = document.getElementById('videosName');
+            videosNameSelect.innerHTML = '<option value="">اختر اسم الفيديو الذي سيفتح</option>';
+            data.forEach(Chapter => {
+                Chapter.chapterLectures.forEach(video => {
+                    const option = document.createElement('option');
+                    option.value = video._id;
+                    option.textContent = video.videoTitle;
+                    videosNameSelect.appendChild(option);
+                });
+            
+            });
+        })
+        .catch(error => console.error('Error:', error));
+    })
+
+</script>
 
 
      <script>

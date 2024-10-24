@@ -437,9 +437,7 @@ const getSingleVideoAllData = async (req, res) => {
             user.videosInfo = user.videosInfo.filter(videoInfo => videoInfo._id === VideoID);
 
           });
-
-
-
+          
           // Now you can add totalWatches to your videoData object
           videoData['totalWatches'] = result.length;
           videoData['VideoID'] = VideoID;
@@ -487,7 +485,7 @@ const updateVideoData = async (req, res) => {
     videoPrice,
     imgURL,
 
-    videoURL,
+    
   } = req.body;
 
   try {
@@ -508,7 +506,7 @@ const updateVideoData = async (req, res) => {
           [`${videoType}.$.videoPrice`]: videoPrice || 0,
           [`${videoType}.$.imgURL`]: imgURL || "",
      
-          [`${videoType}.$.videoURL`]: videoURL || "",
+
         }
       },
       {
@@ -1021,39 +1019,26 @@ let grade
 let quizQuestions = [];
 let getQuizAllData
 const addQuiz_get = async (req, res) => {
-  const videoData = []
+ 
   const quizData = []
   getQuizAllData = null
   quizQuestions = []
   const { Grade } = req.query
   grade = Grade
-  await Chapter.find({
-    chapterGrade: Grade
-  }).then(async (result) => {
-
-    result.forEach((cahpter) => {
-      videoData.push({
-        chapterLectures: cahpter.chapterLectures
-      })
-
-    })
 
     await Quiz.find({
-      Grade: Grade
+      Grade: Grade,
     }).then((result) => {
-
       result.forEach((quiz) => {
         quizData.push({
           quizName: quiz.quizName,
-          _id: quiz._id
-        })
-      })
+          _id: quiz._id,
+        });
+      });
+    });
 
-    })
 
-  })
-
-  res.render("teacher/addQuiz", { title: "AddQuiz", path: req.path, questions: quizQuestions, videoData: videoData, quizData: quizData, Grade: Grade, getQuizAllData: getQuizAllData || null });
+  res.render("teacher/addQuiz", { title: "AddQuiz", path: req.path, questions: quizQuestions, videoData: null, quizData: quizData, Grade: Grade, getQuizAllData: getQuizAllData || null });
 };
 
 const addQuestion = (req, res) => {
@@ -1181,6 +1166,27 @@ const deleteQuiz = (req, res) => {
 
   }
 }
+
+const getVideosWillOpen = async (req, res) => {
+  try {
+    const { Grade } = req.body
+    const videoData = [];
+    await Chapter.find({
+      chapterGrade: Grade,
+    }).then(async (result) => {
+      result.forEach((cahpter) => {
+        videoData.push({
+          chapterLectures: cahpter.chapterLectures,
+        });
+      });
+    });
+    console.log(videoData)
+    res.status(200).json(videoData);
+  }catch(error){
+    console.log(error)
+  }
+}
+
 
 const updateQuiz = (req, res) => {
   try {
@@ -2279,28 +2285,61 @@ const acceptHW = async (req, res) => {
   const { videoID, studentCode } = req.params;
 
   try {
-    // Find the user with the specific studentCode and update the specific video data
+    // Update the specific video inside videosInfo array using the positional operator `$`
     const user = await User.findOneAndUpdate(
       { Code: studentCode, 'videosInfo._id': videoID },
       {
         $set: {
           'videosInfo.$.isUploadedHWApproved': true,
         },
-      }
+      },
+      { new: true, useFindAndModify: false }
     );
 
-    // Check if the user and video were found
+    // If no user or video found
     if (!user) {
-      return res.status(404).json({ message: 'Video not found' });
+      return res.status(404).json({ message: 'User or video not found' });
     }
 
-    // Return the video data
+    // Log the updated document
+    console.log('Updated video:', user.videosInfo);
 
-    res.status(200).json({ message: 'Homework accepted successfully' });
+    // Find the next video to update based on `accessibleAfterViewing`
+    const nextVideoID = user.videosInfo.find(
+      (video) => video.accessibleAfterViewing === videoID
+    );
+
+    if (nextVideoID) {
+      // Update the next video to be accessible
+      await User.findOneAndUpdate(
+        { Code: studentCode, 'videosInfo._id': nextVideoID._id },
+        {
+          $set: {
+            'videosInfo.$.isUserUploadPerviousHWAndApproved': true,
+          },
+        },
+        { new: true, useFindAndModify: false }
+      );
+
+      return res
+        .status(200)
+        .json({
+          message: 'Homework accepted and next video updated successfully',
+        });
+    } else {
+      return res
+        .status(200)
+        .json({ message: 'Homework accepted, but no next video to update' });
+    }
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Error:', error);
+    return res
+      .status(500)
+      .json({ message: 'Server error', error: error.message });
   }
 };
+
+
 
 // =================================================== Log Out =================================================== //
 
@@ -2336,6 +2375,7 @@ module.exports = {
   getQuizAlldata,
   deleteQuiz,
   updateQuiz,
+  getVideosWillOpen,
   quizSubmit,
   handleQuizzes,
   getQuizzesNames,
