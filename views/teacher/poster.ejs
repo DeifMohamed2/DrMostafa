@@ -34,18 +34,13 @@ canvas{
         <div class="row">
             <div class="col-md-2">
                 <aside>
-                    <div class="top">
-                        <div class="logo">
-                            <img src="../images/logo.png" alt="logo">
-                        </div>
-                        <div class="close" id="close-btn">
-                            <i class="fa-solid fa-xmark"></i>
-                        </div>
-                    </div>
+            
                     <div class="sidebar">
 
+                    <%- include("./partials/nav.ejs") %>
+             
 
-                        
+                
                     
                     </div>
                 </aside>
@@ -96,10 +91,7 @@ canvas{
                                   <option value="Grade2">الصف الثاني الثانوي</option>
                                   <option value="Grade3">الصف الثالث الثانوي</option>
                               </select>
-                              <select name="EnORAr" id="EnORAr" class="Grade" required>
-                                  <option selected value="ar">AR</option>
-                                  <option value="en">EN</option>
-                              </select>
+                           
   
                               <div class="product-info">
                                   <textarea name="title" cols="60" rows="4" id="posterTitle" placeholder="Title " required></textarea>
@@ -151,7 +143,6 @@ canvas{
   
       <script>
           const Grade = document.getElementById("Grade");
-          const EnORAr = document.getElementById("EnORAr");
           const posterTitle = document.getElementById("posterTitle");
           const image = document.getElementById("image");
           const canvas = document.getElementById('canvas');
@@ -174,30 +165,21 @@ canvas{
     
           function changePhoto() {
               if (Grade.value == "Grade1") {
-                  if (EnORAr.value == "ar") {
+                 
                      
-                      image.src = "https://firebasestorage.googleapis.com/v0/b/allasharaf.appspot.com/o/%D8%A7%D9%88%D9%84%D9%8A.jpg?alt=media&token=0429ac6a-44ef-4304-84bc-f6fa24167835";
+                      image.src = "https://firebasestorage.googleapis.com/v0/b/biodiva-fa1b0.appspot.com/o/1.jpg?alt=media&token=1dc0ba93-bdc9-452d-b3b6-911492085b07";
                   
-                  } else {
-                     
-                      image.src = "https://firebasestorage.googleapis.com/v0/b/allasharaf.appspot.com/o/1sec.jpg?alt=media&token=ca9f40e9-231c-43f2-91d7-b709e7583371";
-                  }
+            
               } else if (Grade.value == "Grade2") {
-                  if (EnORAr.value == "ar") {
+            
                      
-                      image.src = "https://firebasestorage.googleapis.com/v0/b/allasharaf.appspot.com/o/%D8%AA%D8%A7%D9%86%D9%8A%D9%87.jpg?alt=media&token=68027ade-e14b-4490-9e15-767c69bb3ba6";
-                  } else {
-                     
-                      image.src = "https://firebasestorage.googleapis.com/v0/b/allasharaf.appspot.com/o/2sec.jpg?alt=media&token=4ad4649f-e19f-472a-bc90-43ba3131e074";
-                  }
+                      image.src = "https://firebasestorage.googleapis.com/v0/b/biodiva-fa1b0.appspot.com/o/2.jpg?alt=media&token=b7fd1139-a27f-4319-8fd8-bda3b05f432b";
+           
               } else if (Grade.value == "Grade3") {
-                  if (EnORAr.value == "ar") {
+               
                      
-                      image.src = "https://firebasestorage.googleapis.com/v0/b/allasharaf.appspot.com/o/%D8%AA%D8%A7%D9%84%D8%AA%D9%87%20.jpg?alt=media&token=0840df9c-21c8-41aa-8136-a30d40956ab4";
-                  } else {
-                     
-                      image.src = "https://firebasestorage.googleapis.com/v0/b/allasharaf.appspot.com/o/3sec.jpg?alt=media&token=77b79f03-4ae4-4820-bb5d-a7456f6ed37e";
-                }
+                      image.src = "https://firebasestorage.googleapis.com/v0/b/biodiva-fa1b0.appspot.com/o/3.jpg?alt=media&token=84857b1e-7c3d-4222-b34c-52592b45a2f3";
+             
             }
             loadImageFromURL(image.src)
           }
@@ -207,31 +189,28 @@ canvas{
 
         // Event listeners for Grade and Language change
         Grade.addEventListener("change", changePhoto);
-        EnORAr.addEventListener("change", changePhoto);
 
         posterTitle.addEventListener("input", drawText);
 
    // Function to draw text on canvas
    function drawText() {
+    console.log("#1")
         ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear previous text
         ctx.drawImage(img, 0, 0, imgWidth, imgHeight); // Redraw image
-        ctx.font = '90pt ' + "Arial bold"; 
-        ctx.fillStyle = 'white';
+        ctx.font = '70pt ' + "Arial bold"; 
+        ctx.fillStyle = 'black';
         ctx.fontWeight = "bold"
         
         // Set text direction based on language
         ctx.direction = (posterTitle.value.match(/[\u0600-\u06FF]/) || posterTitle.value.match(/[\u0750-\u077F]/)) ? 'rtl' : 'ltr';
         
         var lines = posterTitle.value.split('\n');
-        var y = parseFloat(650);
-        var linePadding = parseInt(60, 10) || 0; // Line padding (default to 0 if not provided)
+        var y = parseFloat(720);
+        var linePadding = parseInt(40, 10) || 0; // Line padding (default to 0 if not provided)
         for (var i = 0; i < lines.length; i++) {
-            if (EnORAr.value =="ar") {
-                ctx.fillText(lines[i], parseFloat(1580), y); 
-            }else{
-                ctx.fillText(lines[i], parseFloat(15), y); 
-
-            }
+           
+                ctx.fillText(lines[i], parseFloat(780), y); 
+        
            // Use the input text and coordinates
             y += parseInt("90", 10) + linePadding; // Move to the next line with padding
         }

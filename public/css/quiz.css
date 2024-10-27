@@ -138,10 +138,11 @@
     border-radius: 2rem;
   }
   .quiz-info .questionSec{
-    background-color: rgb(80, 80, 80);
+   background-color: #FFD700;
     padding: 0.8rem;
     border-radius: 1rem;
-    word-wrap:break-word ;
+    word-wrap: break-word;
+    color: black;
   }
   .quiz-info input[type="radio"] {
     display: none;  
