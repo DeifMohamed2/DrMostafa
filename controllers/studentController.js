@@ -20,6 +20,8 @@ const { v4: uuidv4 } = require('uuid')
 
 const dash_get = async (req, res) => {
   try {
+    // Reset all quiz and video information for the current user
+
 
     const rankedUsers = await User.find({Grade:req.userData.Grade},{Username:1,userPhoto:1}).sort({ totalScore: -1 }).limit(3);
      
